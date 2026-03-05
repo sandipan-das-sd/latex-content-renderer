@@ -32,6 +32,8 @@ export interface GetHtmlOptions extends ProcessOptions {
    * - dark: white text on transparent background
    */
   theme?: 'light' | 'dark';
+  /** Skip processContent call — use when content is already processed HTML (default: false) */
+  skipProcessing?: boolean;
 }
 
 export function getHtml(content: string, options: GetHtmlOptions = {}): string {
@@ -44,11 +46,12 @@ export function getHtml(content: string, options: GetHtmlOptions = {}): string {
     mathjaxUrl = 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js',
     smilesDrawerUrl = 'https://unpkg.com/smiles-drawer@2.0.1/dist/smiles-drawer.min.js',
     theme = 'dark',
+    skipProcessing = false,
     ...processOptions
   } = options;
 
   const resolvedTextColor = textColor || (theme === 'dark' ? '#ffffff' : '#1a1a1a');
-  const processed = processContent(content, processOptions);
+  const processed = skipProcessing ? content : processContent(content, processOptions);
 
   // Sanitize LaTeX to prevent MathJax stack overflow
   const sanitizedContent = sanitizeLatex(processed);
@@ -129,32 +132,83 @@ export function getHtml(content: string, options: GetHtmlOptions = {}): string {
   <script src="${escapeHtml(mathjaxUrl)}" id="MathJax-script" async></script>
   <script src="${escapeHtml(smilesDrawerUrl)}"></script>
   <script>
-    // Render SMILES after library loads
+    // Full 3-method SMILES rendering cascade (matches MathContent.tsx)
     window.addEventListener('load', function() {
-      setTimeout(() => {
-        if (typeof SmilesDrawer === 'undefined' && typeof SmiDrawer === 'undefined') return;
-
-        // Try v2 SmiDrawer.apply() first
-        if (typeof SmiDrawer !== 'undefined') {
-          try { SmiDrawer.apply(); return; } catch(e) {}
-        }
-
-        // Fallback: v1 canvas-based
-        var canvases = document.querySelectorAll('canvas[data-smiles]');
-        if (typeof SmilesDrawer !== 'undefined' && SmilesDrawer.parse) {
-          canvases.forEach(function(canvas) {
-            var smiles = canvas.getAttribute('data-smiles');
-            SmilesDrawer.parse(smiles, function(tree) {
-              new SmilesDrawer.Drawer({ width: 300, height: 200, bondThickness: 1.5 })
-                .draw(tree, canvas, '${theme}', false);
-            }, function() {});
-          });
-        }
-
-        // Also handle img/svg data-smiles elements
+      setTimeout(function() {
         var elements = document.querySelectorAll('img[data-smiles], svg[data-smiles]');
-        if (typeof SmiDrawer !== 'undefined' && elements.length) {
-          try { SmiDrawer.apply(); } catch(e) {}
+        if (elements.length === 0) return;
+
+        var SD = (typeof SmiDrawer !== 'undefined') ? SmiDrawer : null;
+
+        function showFallback(el, smiles) {
+          var parent = el.parentElement;
+          if (parent) {
+            parent.innerHTML = '<code style="font-size:0.9em;padding:4px 8px;border:1px dashed currentColor;border-radius:4px;display:inline-block">' + smiles + '</code>';
+          }
+        }
+
+        // Method 1: SmiDrawer.apply() (v2 recommended)
+        if (SD) {
+          try {
+            SD.apply();
+            setTimeout(function() {
+              var allOk = true;
+              elements.forEach(function(el) {
+                if (el.tagName === 'IMG') {
+                  if (!el.src || el.src === window.location.href || el.naturalWidth === 0) allOk = false;
+                } else if (el.tagName === 'SVG' || el.tagName === 'svg') {
+                  if (!el.innerHTML || el.innerHTML.trim() === '') allOk = false;
+                }
+              });
+              if (allOk) return;
+              tryMethod2();
+            }, 400);
+            return;
+          } catch(e) {}
+        }
+        tryMethod2();
+
+        // Method 2: new SmiDrawer instance + draw() per element
+        function tryMethod2() {
+          if (!SD) { tryMethod3(); return; }
+          try {
+            var sd = new SD({
+              bondThickness: 1.0, bondLength: 15, shortBondLength: 0.85,
+              fontSizeLarge: 6, fontSizeSmall: 4, padding: 20,
+              explicitHydrogens: false, terminalCarbons: false, compactDrawing: true
+            }, {});
+            elements.forEach(function(el) {
+              var smiles = el.getAttribute('data-smiles');
+              if (!smiles) return;
+              try { sd.draw(smiles, '#' + el.id, 'light'); }
+              catch(e) { showFallback(el, smiles); }
+            });
+            return;
+          } catch(e) {}
+          tryMethod3();
+        }
+
+        // Method 3: v1 fallback (canvas-based)
+        function tryMethod3() {
+          var SDv1 = (typeof SmilesDrawer !== 'undefined') ? SmilesDrawer : null;
+          if (SDv1 && SDv1.parse) {
+            elements.forEach(function(el) {
+              var smiles = el.getAttribute('data-smiles');
+              if (!smiles || !el.parentElement) return;
+              var canvas = document.createElement('canvas');
+              canvas.width = 280; canvas.height = 200;
+              canvas.style.cssText = 'max-width:100%;border-radius:6px;background:#fff';
+              el.parentElement.replaceChild(canvas, el);
+              SDv1.parse(smiles, function(tree) {
+                new SDv1.Drawer({ width: 280, height: 200, bondThickness: 1 })
+                  .draw(tree, canvas, '${theme}', false);
+              }, function() { showFallback(canvas, smiles); });
+            });
+          } else {
+            elements.forEach(function(el) {
+              showFallback(el, el.getAttribute('data-smiles') || '');
+            });
+          }
         }
       }, 800);
     });
@@ -166,11 +220,7 @@ export function getHtml(content: string, options: GetHtmlOptions = {}): string {
       background: ${backgroundColor};
       font-size: ${fontSize}px;
     }
-    ${theme === 'light' ? `
-    mjx-container { color: #1a1a1a !important; }
-    mjx-container * { color: #1a1a1a !important; }
-    strong { color: #1a1a1a; }
-    ` : ''}
+    ${theme === 'light' ? `strong { color: #1a1a1a; }` : ''}
     ${customCss}
   </style>
 </head>

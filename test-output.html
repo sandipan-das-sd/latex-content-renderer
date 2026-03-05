@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
-  <title>scirender Test Page</title>
+  <title>latex-content-renderer Test Page</title>
   <script>
     window.MathJax = {
       loader: {
@@ -74,32 +74,83 @@
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" id="MathJax-script" async></script>
   <script src="https://unpkg.com/smiles-drawer@2.0.1/dist/smiles-drawer.min.js"></script>
   <script>
-    // Render SMILES after library loads
+    // Full 3-method SMILES rendering cascade (matches MathContent.tsx)
     window.addEventListener('load', function() {
-      setTimeout(() => {
-        if (typeof SmilesDrawer === 'undefined' && typeof SmiDrawer === 'undefined') return;
-
-        // Try v2 SmiDrawer.apply() first
-        if (typeof SmiDrawer !== 'undefined') {
-          try { SmiDrawer.apply(); return; } catch(e) {}
-        }
-
-        // Fallback: v1 canvas-based
-        var canvases = document.querySelectorAll('canvas[data-smiles]');
-        if (typeof SmilesDrawer !== 'undefined' && SmilesDrawer.parse) {
-          canvases.forEach(function(canvas) {
-            var smiles = canvas.getAttribute('data-smiles');
-            SmilesDrawer.parse(smiles, function(tree) {
-              new SmilesDrawer.Drawer({ width: 300, height: 200, bondThickness: 1.5 })
-                .draw(tree, canvas, 'dark', false);
-            }, function() {});
-          });
-        }
-
-        // Also handle img/svg data-smiles elements
+      setTimeout(function() {
         var elements = document.querySelectorAll('img[data-smiles], svg[data-smiles]');
-        if (typeof SmiDrawer !== 'undefined' && elements.length) {
-          try { SmiDrawer.apply(); } catch(e) {}
+        if (elements.length === 0) return;
+
+        var SD = (typeof SmiDrawer !== 'undefined') ? SmiDrawer : null;
+
+        function showFallback(el, smiles) {
+          var parent = el.parentElement;
+          if (parent) {
+            parent.innerHTML = '<code style="font-size:0.9em;padding:4px 8px;border:1px dashed currentColor;border-radius:4px;display:inline-block">' + smiles + '</code>';
+          }
+        }
+
+        // Method 1: SmiDrawer.apply() (v2 recommended)
+        if (SD) {
+          try {
+            SD.apply();
+            setTimeout(function() {
+              var allOk = true;
+              elements.forEach(function(el) {
+                if (el.tagName === 'IMG') {
+                  if (!el.src || el.src === window.location.href || el.naturalWidth === 0) allOk = false;
+                } else if (el.tagName === 'SVG' || el.tagName === 'svg') {
+                  if (!el.innerHTML || el.innerHTML.trim() === '') allOk = false;
+                }
+              });
+              if (allOk) return;
+              tryMethod2();
+            }, 400);
+            return;
+          } catch(e) {}
+        }
+        tryMethod2();
+
+        // Method 2: new SmiDrawer instance + draw() per element
+        function tryMethod2() {
+          if (!SD) { tryMethod3(); return; }
+          try {
+            var sd = new SD({
+              bondThickness: 1.0, bondLength: 15, shortBondLength: 0.85,
+              fontSizeLarge: 6, fontSizeSmall: 4, padding: 20,
+              explicitHydrogens: false, terminalCarbons: false, compactDrawing: true
+            }, {});
+            elements.forEach(function(el) {
+              var smiles = el.getAttribute('data-smiles');
+              if (!smiles) return;
+              try { sd.draw(smiles, '#' + el.id, 'light'); }
+              catch(e) { showFallback(el, smiles); }
+            });
+            return;
+          } catch(e) {}
+          tryMethod3();
+        }
+
+        // Method 3: v1 fallback (canvas-based)
+        function tryMethod3() {
+          var SDv1 = (typeof SmilesDrawer !== 'undefined') ? SmilesDrawer : null;
+          if (SDv1 && SDv1.parse) {
+            elements.forEach(function(el) {
+              var smiles = el.getAttribute('data-smiles');
+              if (!smiles || !el.parentElement) return;
+              var canvas = document.createElement('canvas');
+              canvas.width = 280; canvas.height = 200;
+              canvas.style.cssText = 'max-width:100%;border-radius:6px;background:#fff';
+              el.parentElement.replaceChild(canvas, el);
+              SDv1.parse(smiles, function(tree) {
+                new SDv1.Drawer({ width: 280, height: 200, bondThickness: 1 })
+                  .draw(tree, canvas, 'dark', false);
+              }, function() { showFallback(canvas, smiles); });
+            });
+          } else {
+            elements.forEach(function(el) {
+              showFallback(el, el.getAttribute('data-smiles') || '');
+            });
+          }
         }
       }, 800);
     });
@@ -126,7 +177,7 @@ body {
   white-space: normal;
 }
 mjx-container {
-  color: #fff !important;
+  color: inherit !important;
   max-width: 100%;
   overflow-x: auto;
   scrollbar-width: thin;
@@ -136,7 +187,7 @@ mjx-container::-webkit-scrollbar { height: 6px; }
 mjx-container::-webkit-scrollbar-track { background: rgba(255,255,255,0.1); border-radius: 3px; }
 mjx-container::-webkit-scrollbar-thumb { background: rgba(255,193,7,0.5); border-radius: 3px; }
 mjx-container::-webkit-scrollbar-thumb:hover { background: rgba(255,193,7,0.8); }
-mjx-container * { color: #fff !important; }
+mjx-container * { color: inherit !important; }
 mjx-container[display="block"] {
   margin: 6px 0;
   max-width: 100%;
@@ -187,29 +238,37 @@ strong {
     
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 900px; margin: 0 auto; padding: 20px; }
     table { border-collapse: collapse; margin: 8px 0; }
-    td, th { border: 1px solid #cbd5e1; padding: 6px 10px; }
+    td, th { border: 1px solid #cbd5e1; padding: 6px 10px; color: #1e293b; }
     img { max-width: 100%; }
     canvas { background: #fff; border-radius: 4px; }
     a { color: #38bdf8; }
+    pre { color: #94a3b8 !important; }
+    h1, h2 { color: #38bdf8 !important; }
+    .scirender-smiles { background: #fff; border-radius: 10px; padding: 8px 12px; display: inline-block; margin: 0.3em 0; box-shadow: 0 1px 4px rgba(0,0,0,0.15); }
+    .scirender-smiles img, .scirender-smiles svg, .scirender-smiles canvas { border-radius: 6px; max-width: 280px; height: auto; display: block; }
   
   </style>
 </head>
 <body>
   <div class="scirender-content"><div style="text-align:center;margin-bottom:30px;">
-<h1 style="color:#38bdf8;margin:0 0 10px 0;">scirender Test Page</h1>
-<p style="color:#94a3b8;font-size:14px;">Testing <a href="https://www.npmjs.com/package/scirender" style="color:#38bdf8;">scirender@1.0.0</a> — processContent() output rendered in browser</p>
+<h1 style="color:#38bdf8;margin:0 0 10px 0;">latex-content-renderer Test Page</h1>
+<p style="color:#94a3b8;font-size:14px;">Testing <a href="https://www.npmjs.com/package/latex-content-renderer" style="color:#38bdf8;">latex-content-renderer@1.0.0</a></p>
 <p style="color:#22c55e;font-size:18px;margin-top:15px;">processContent() — 8/8 tests passed ✓</p>
 </div><div style="background:#1e293b;border:1px solid #334155;border-radius:12px;padding:20px;margin-bottom:20px;">
 <h2 style="color:#38bdf8;font-size:16px;margin:0 0 6px 0;">1. Inline Math</h2>
 <p style="font-size:12px;color:#64748b;margin:0 0 4px 0;">Input:</p>
 <pre style="background:#0f172a;border:1px solid #334155;border-radius:8px;padding:10px;font-size:13px;color:#94a3b8;margin:0 0 12px 0;overflow-x:auto;white-space:pre-wrap;">The quadratic formula is $x = \frac{-b \pm \sqrt{b^2-4ac}}{2a}$ and Einstein's equation $E=mc^2$.</pre>
-<div style="background:#ffffff;border-radius:8px;padding:16px;color:#1e293b;min-height:40px;">The quadratic formula is $x = \frac{-b \pm \sqrt{b^2-4ac}}{2a}$ and Einstein's equation $E=mc^2$.</div> </div> <div style="background:#1e293b;border:1px solid #334155;border-radius:12px;padding:20px;margin-bottom:20px;">
+<div style="background:#ffffff;border-radius:8px;padding:16px;color:#1e293b;min-height:40px;">The quadratic formula is $x = \frac{-b \pm \sqrt{b^2-4ac}}{2a}$ and Einstein's equation $E=mc^2$.</div>
+</div>
+<div style="background:#1e293b;border:1px solid #334155;border-radius:12px;padding:20px;margin-bottom:20px;">
 <h2 style="color:#38bdf8;font-size:16px;margin:0 0 6px 0;">2. Display Math (Block Equations)</h2>
 <p style="font-size:12px;color:#64748b;margin:0 0 4px 0;">Input:</p>
-<pre style="background:#0f172a;border:1px solid #334155;border-radius:8px;padding:10px;font-size:13px;color:#94a3b8;margin:0 0 12px 0;overflow-x:auto;white-space:pre-wrap;">$\int_{0}^{\infty} e^{-x^2} dx = \frac{\sqrt{\pi}}{2}$
+<pre style="background:#0f172a;border:1px solid #334155;border-radius:8px;padding:10px;font-size:13px;color:#94a3b8;margin:0 0 12px 0;overflow-x:auto;white-space:pre-wrap;">$$\int_{0}^{\infty} e^{-x^2} dx = \frac{\sqrt{\pi}}{2}$$
 
 \[\sum_{n=1}^{\infty} \frac{1}{n^2} = \frac{\pi^2}{6}\]</pre>
-<div style="background:#ffffff;border-radius:8px;padding:16px;color:#1e293b;min-height:40px;">$\int_{0}^{\infty} e^{-x^2} dx = \frac{\sqrt{\pi}}{2}$ \[\sum_{n=1}^{\infty} \frac{1}{n^2} = \frac{\pi^2}{6}\]</div> </div> <div style="background:#1e293b;border:1px solid #334155;border-radius:12px;padding:20px;margin-bottom:20px;">
+<div style="background:#ffffff;border-radius:8px;padding:16px;color:#1e293b;min-height:40px;">$\int_{0}^{\infty} e^{-x^2} dx = \frac{\sqrt{\pi}}{2}$ \[\sum_{n=1}^{\infty} \frac{1}{n^2} = \frac{\pi^2}{6}\]</div>
+</div>
+<div style="background:#1e293b;border:1px solid #334155;border-radius:12px;padding:20px;margin-bottom:20px;">
 <h2 style="color:#38bdf8;font-size:16px;margin:0 0 6px 0;">3. Chemistry — mhchem (\ce)</h2>
 <p style="font-size:12px;color:#64748b;margin:0 0 4px 0;">Input:</p>
 <pre style="background:#0f172a;border:1px solid #334155;border-radius:8px;padding:10px;font-size:13px;color:#94a3b8;margin:0 0 12px 0;overflow-x:auto;white-space:pre-wrap;">Combustion: $\ce{2H2 + O2 -&gt; 2H2O}$
@@ -217,28 +276,65 @@ strong {
 Equilibrium: $\ce{N2 + 3H2 &lt;=&gt; 2NH3}$
 
 With states: $\ce{AgCl(s) &lt;=&gt; Ag+(aq) + Cl-(aq)}$</pre>
-<div style="background:#ffffff;border-radius:8px;padding:16px;color:#1e293b;min-height:40px;">Combustion: $\ce{2H2 + O2 -> 2H2O}$ Equilibrium: $\ce{N2 + 3H2 <=> 2NH3}$ With states: $\ce{AgCl(s) <=> Ag+(aq) + Cl-(aq)}$</div> </div> <div style="background:#1e293b;border:1px solid #334155;border-radius:12px;padding:20px;margin-bottom:20px;">
+<div style="background:#ffffff;border-radius:8px;padding:16px;color:#1e293b;min-height:40px;">Combustion: $\ce{2H2 + O2 -> 2H2O}$ Equilibrium: $\ce{N2 + 3H2 <=> 2NH3}$ With states: $\ce{AgCl(s) <=> Ag+(aq) + Cl-(aq)}$</div>
+</div>
+<div style="background:#1e293b;border:1px solid #334155;border-radius:12px;padding:20px;margin-bottom:20px;">
 <h2 style="color:#38bdf8;font-size:16px;margin:0 0 6px 0;">4. SMILES Chemical Structures</h2>
 <p style="font-size:12px;color:#64748b;margin:0 0 4px 0;">Input:</p>
 <pre style="background:#0f172a;border:1px solid #334155;border-radius:8px;padding:10px;font-size:13px;color:#94a3b8;margin:0 0 12px 0;overflow-x:auto;white-space:pre-wrap;">Benzene:
-<div class="scirender-smiles"><img id="smiles-1772692812447-6" data-smiles="C1=CC=CC=C1" data-smiles-theme="light" data-smiles-options="{ &quot;width&quot;: 280, &quot;height&quot;: 200 }" alt="Chemical structure: C1=CC=CC=C1" /></div> Acetic Acid: <div class="scirender-smiles"><img id="smiles-1772692812447-7" data-smiles="CC(=O)O" data-smiles-theme="light" data-smiles-options="{ &quot;width&quot;: 280, &quot;height&quot;: 200 }" alt="Chemical structure: CC(=O)O" /></div> Cyclohexane: <div class="scirender-smiles"><img id="smiles-1772692812447-8" data-smiles="C1CCCCC1" data-smiles-theme="light" data-smiles-options="{ &quot;width&quot;: 280, &quot;height&quot;: 200 }" alt="Chemical structure: C1CCCCC1" /></div></pre> <div style="background:#ffffff;border-radius:8px;padding:16px;color:#1e293b;min-height:40px;">Benzene: <div class="scirender-smiles"><img id="smiles-1772692812445-3" data-smiles="C1=CC=CC=C1" data-smiles-theme="light" data-smiles-options="{ &quot;width&quot;: 280, &quot;height&quot;: 200 }" alt="Chemical structure: C1=CC=CC=C1" /></div> Acetic Acid: <div class="scirender-smiles"><img id="smiles-1772692812445-4" data-smiles="CC(=O)O" data-smiles-theme="light" data-smiles-options="{ &quot;width&quot;: 280, &quot;height&quot;: 200 }" alt="Chemical structure: CC(=O)O" /></div> Cyclohexane: <div class="scirender-smiles"><img id="smiles-1772692812445-5" data-smiles="C1CCCCC1" data-smiles-theme="light" data-smiles-options="{ &quot;width&quot;: 280, &quot;height&quot;: 200 }" alt="Chemical structure: C1CCCCC1" /></div></div> </div> <div style="background:#1e293b;border:1px solid #334155;border-radius:12px;padding:20px;margin-bottom:20px;">
+[SMILES]C1=CC=CC=C1[/SMILES]
+
+Acetic Acid:
+[SMILES]CC(=O)O[/SMILES]
+
+Cyclohexane:
+[SMILES]C1CCCCC1[/SMILES]</pre>
+<div style="background:#ffffff;border-radius:8px;padding:16px;color:#1e293b;min-height:40px;">Benzene: <div class="scirender-smiles"><img id="smiles-1772694278945-3" data-smiles="C1=CC=CC=C1" data-smiles-theme="light" data-smiles-options="{ &quot;width&quot;: 280, &quot;height&quot;: 200 }" alt="Chemical structure: C1=CC=CC=C1" /></div> Acetic Acid: <div class="scirender-smiles"><img id="smiles-1772694278945-4" data-smiles="CC(=O)O" data-smiles-theme="light" data-smiles-options="{ &quot;width&quot;: 280, &quot;height&quot;: 200 }" alt="Chemical structure: CC(=O)O" /></div> Cyclohexane: <div class="scirender-smiles"><img id="smiles-1772694278945-5" data-smiles="C1CCCCC1" data-smiles-theme="light" data-smiles-options="{ &quot;width&quot;: 280, &quot;height&quot;: 200 }" alt="Chemical structure: C1CCCCC1" /></div></div>
+</div>
+<div style="background:#1e293b;border:1px solid #334155;border-radius:12px;padding:20px;margin-bottom:20px;">
 <h2 style="color:#38bdf8;font-size:16px;margin:0 0 6px 0;">5. LaTeX Tables (tabular)</h2>
 <p style="font-size:12px;color:#64748b;margin:0 0 4px 0;">Input:</p>
-<pre style="background:#0f172a;border:1px solid #334155;border-radius:8px;padding:10px;font-size:13px;color:#94a3b8;margin:0 0 12px 0;overflow-x:auto;white-space:pre-wrap;"><table style="border-collapse: collapse; margin: 0.5em 0; width: auto; border: 1px solid currentColor;"><tr><td style="padding: 6px 12px; text-align: left; border: 1px solid currentColor">Element</td><td style="padding: 6px 12px; text-align: left; border: 1px solid currentColor">Symbol</td><td style="padding: 6px 12px; text-align: left; border: 1px solid currentColor">Atomic No.</td></tr><tr><td style="padding: 6px 12px; text-align: left; border: 1px solid currentColor">Hydrogen</td><td style="padding: 6px 12px; text-align: left; border: 1px solid currentColor">H</td><td style="padding: 6px 12px; text-align: left; border: 1px solid currentColor">1</td></tr><tr><td style="padding: 6px 12px; text-align: left; border: 1px solid currentColor">Carbon</td><td style="padding: 6px 12px; text-align: left; border: 1px solid currentColor">C</td><td style="padding: 6px 12px; text-align: left; border: 1px solid currentColor">6</td></tr><tr><td style="padding: 6px 12px; text-align: left; border: 1px solid currentColor">Oxygen</td><td style="padding: 6px 12px; text-align: left; border: 1px solid currentColor">O</td><td style="padding: 6px 12px; text-align: left; border: 1px solid currentColor">8</td></tr></table></pre> <div style="background:#ffffff;border-radius:8px;padding:16px;color:#1e293b;min-height:40px;"><table style="border-collapse: collapse; margin: 0.5em 0; width: auto; border: 1px solid currentColor;"><tr><td style="padding: 6px 12px; text-align: left; border: 1px solid currentColor">Element</td><td style="padding: 6px 12px; text-align: left; border: 1px solid currentColor">Symbol</td><td style="padding: 6px 12px; text-align: left; border: 1px solid currentColor">Atomic No.</td></tr><tr><td style="padding: 6px 12px; text-align: left; border: 1px solid currentColor">Hydrogen</td><td style="padding: 6px 12px; text-align: left; border: 1px solid currentColor">H</td><td style="padding: 6px 12px; text-align: left; border: 1px solid currentColor">1</td></tr><tr><td style="padding: 6px 12px; text-align: left; border: 1px solid currentColor">Carbon</td><td style="padding: 6px 12px; text-align: left; border: 1px solid currentColor">C</td><td style="padding: 6px 12px; text-align: left; border: 1px solid currentColor">6</td></tr><tr><td style="padding: 6px 12px; text-align: left; border: 1px solid currentColor">Oxygen</td><td style="padding: 6px 12px; text-align: left; border: 1px solid currentColor">O</td><td style="padding: 6px 12px; text-align: left; border: 1px solid currentColor">8</td></tr></table></div> </div> <div style="background:#1e293b;border:1px solid #334155;border-radius:12px;padding:20px;margin-bottom:20px;">
+<pre style="background:#0f172a;border:1px solid #334155;border-radius:8px;padding:10px;font-size:13px;color:#94a3b8;margin:0 0 12px 0;overflow-x:auto;white-space:pre-wrap;">\begin{tabular}{|c|c|c|}
+\hline
+Element & Symbol & Atomic No. \\
+\hline
+Hydrogen & H & 1 \\
+Carbon & C & 6 \\
+Oxygen & O & 8 \\
+\hline
+\end{tabular}</pre>
+<div style="background:#ffffff;border-radius:8px;padding:16px;color:#1e293b;min-height:40px;"><table style="border-collapse: collapse; margin: 0.5em 0; width: auto; border: 1px solid currentColor;"><tr><td style="padding: 6px 12px; text-align: left; border: 1px solid currentColor">Element</td><td style="padding: 6px 12px; text-align: left; border: 1px solid currentColor">Symbol</td><td style="padding: 6px 12px; text-align: left; border: 1px solid currentColor">Atomic No.</td></tr><tr><td style="padding: 6px 12px; text-align: left; border: 1px solid currentColor">Hydrogen</td><td style="padding: 6px 12px; text-align: left; border: 1px solid currentColor">H</td><td style="padding: 6px 12px; text-align: left; border: 1px solid currentColor">1</td></tr><tr><td style="padding: 6px 12px; text-align: left; border: 1px solid currentColor">Carbon</td><td style="padding: 6px 12px; text-align: left; border: 1px solid currentColor">C</td><td style="padding: 6px 12px; text-align: left; border: 1px solid currentColor">6</td></tr><tr><td style="padding: 6px 12px; text-align: left; border: 1px solid currentColor">Oxygen</td><td style="padding: 6px 12px; text-align: left; border: 1px solid currentColor">O</td><td style="padding: 6px 12px; text-align: left; border: 1px solid currentColor">8</td></tr></table></div>
+</div>
+<div style="background:#1e293b;border:1px solid #334155;border-radius:12px;padding:20px;margin-bottom:20px;">
 <h2 style="color:#38bdf8;font-size:16px;margin:0 0 6px 0;">6. Text Formatting</h2>
 <p style="font-size:12px;color:#64748b;margin:0 0 4px 0;">Input:</p>
-<pre style="background:#0f172a;border:1px solid #334155;border-radius:8px;padding:10px;font-size:13px;color:#94a3b8;margin:0 0 12px 0;overflow-x:auto;white-space:pre-wrap;"><strong>Bold text</strong>, <em>italic text</em>, <u>underlined text</u>, <code>monospace text</code>, and <em>emphasized text</em>.</pre>
-<div style="background:#ffffff;border-radius:8px;padding:16px;color:#1e293b;min-height:40px;"><strong>Bold text</strong>, <em>italic text</em>, <u>underlined text</u>, <code>monospace text</code>, and <em>emphasized text</em>.</div> </div> <div style="background:#1e293b;border:1px solid #334155;border-radius:12px;padding:20px;margin-bottom:20px;">
+<pre style="background:#0f172a;border:1px solid #334155;border-radius:8px;padding:10px;font-size:13px;color:#94a3b8;margin:0 0 12px 0;overflow-x:auto;white-space:pre-wrap;">\textbf{Bold text}, \textit{italic text}, \underline{underlined text}, \texttt{monospace text}, and \emph{emphasized text}.</pre>
+<div style="background:#ffffff;border-radius:8px;padding:16px;color:#1e293b;min-height:40px;"><strong>Bold text</strong>, <em>italic text</em>, <u>underlined text</u>, <code>monospace text</code>, and <em>emphasized text</em>.</div>
+</div>
+<div style="background:#1e293b;border:1px solid #334155;border-radius:12px;padding:20px;margin-bottom:20px;">
 <h2 style="color:#38bdf8;font-size:16px;margin:0 0 6px 0;">7. LaTeX Lists</h2>
 <p style="font-size:12px;color:#64748b;margin:0 0 4px 0;">Input:</p>
-<pre style="background:#0f172a;border:1px solid #334155;border-radius:8px;padding:10px;font-size:13px;color:#94a3b8;margin:0 0 12px 0;overflow-x:auto;white-space:pre-wrap;"><ol style="margin:0.5em 0;padding-left:1.5em"><li>First item with math: $a^2 + b^2 = c^2$</li><li>Second item</li><li>Third item</li></ol> <ul style="margin:0.5em 0;padding-left:1.5em"><li>Bullet one</li><li>Bullet two</li></ul></pre> <div style="background:#ffffff;border-radius:8px;padding:16px;color:#1e293b;min-height:40px;"><ol style="margin:0.5em 0;padding-left:1.5em"><li>First item with math: $a^2 + b^2 = c^2$</li><li>Second item</li><li>Third item</li></ol> <ul style="margin:0.5em 0;padding-left:1.5em"><li>Bullet one</li><li>Bullet two</li></ul></div> </div> <div style="background:#1e293b;border:1px solid #334155;border-radius:12px;padding:20px;margin-bottom:20px;">
+<pre style="background:#0f172a;border:1px solid #334155;border-radius:8px;padding:10px;font-size:13px;color:#94a3b8;margin:0 0 12px 0;overflow-x:auto;white-space:pre-wrap;">\begin{enumerate}
+\item First item with math: $a^2 + b^2 = c^2$
+\item Second item
+\item Third item
+\end{enumerate}
+
+\begin{itemize}
+\item Bullet one
+\item Bullet two
+\end{itemize}</pre>
+<div style="background:#ffffff;border-radius:8px;padding:16px;color:#1e293b;min-height:40px;"><ol style="margin:0.5em 0;padding-left:1.5em"><li>First item with math: $a^2 + b^2 = c^2$</li><li>Second item</li><li>Third item</li></ol> <ul style="margin:0.5em 0;padding-left:1.5em"><li>Bullet one</li><li>Bullet two</li></ul></div>
+</div>
+<div style="background:#1e293b;border:1px solid #334155;border-radius:12px;padding:20px;margin-bottom:20px;">
 <h2 style="color:#38bdf8;font-size:16px;margin:0 0 6px 0;">8. Mixed Content (Math + Chemistry + Text)</h2>
 <p style="font-size:12px;color:#64748b;margin:0 0 4px 0;">Input:</p>
 <pre style="background:#0f172a;border:1px solid #334155;border-radius:8px;padding:10px;font-size:13px;color:#94a3b8;margin:0 0 12px 0;overflow-x:auto;white-space:pre-wrap;">In thermodynamics, the Gibbs free energy is given by:
-$\Delta G = \Delta H - T\Delta S$
-For the reaction $\ce{2H2(g) + O2(g) -&gt; 2H2O(l)}$, we can calculate $\Delta G$ using <strong>standard formation values</strong>.
+$$\Delta G = \Delta H - T\Delta S$$
+For the reaction $\ce{2H2(g) + O2(g) -&gt; 2H2O(l)}$, we can calculate $\Delta G$ using \textbf{standard formation values}.
 
 The equilibrium constant relates to Gibbs energy: $\Delta G^\circ = -RT\ln K$</pre>
-<div style="background:#ffffff;border-radius:8px;padding:16px;color:#1e293b;min-height:40px;">In thermodynamics, the Gibbs free energy is given by: $\Delta G = \Delta H - T\Delta S$ For the reaction $\ce{2H2(g) + O2(g) -> 2H2O(l)}$, we can calculate $\Delta G$ using <strong>standard formation values</strong>. The equilibrium constant relates to Gibbs energy: $\Delta G^\circ = -RT\ln K$</div> </div></div>
+<div style="background:#ffffff;border-radius:8px;padding:16px;color:#1e293b;min-height:40px;">In thermodynamics, the Gibbs free energy is given by: $\Delta G = \Delta H - T\Delta S$ For the reaction $\ce{2H2(g) + O2(g) -> 2H2O(l)}$, we can calculate $\Delta G$ using <strong>standard formation values</strong>. The equilibrium constant relates to Gibbs energy: $\Delta G^\circ = -RT\ln K$</div>
+</div></div>
 </body>
 </html>

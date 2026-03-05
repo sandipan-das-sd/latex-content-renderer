@@ -1,4 +1,4 @@
-// Generate self-contained test HTML using scirender's getHtml()
+// Generate self-contained test HTML using latex-content-renderer's getHtml()
 const { processContent, getHtml } = require('./dist/index.js');
 
 const testCases = [
@@ -54,36 +54,43 @@ testCases.forEach((tc, i) => {
 });
 console.log(`\\n  Result: ${passed}/${testCases.length} passed\\n`);
 
-// Build combined content for the visual test page
+// Build combined content — process each test case individually, then wrap in HTML
 const allContent = testCases.map(tc => {
+  const escapedInput = tc.input.replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const rendered = processContent(tc.input); // Process ONCE here per test case
   return `<div style="background:#1e293b;border:1px solid #334155;border-radius:12px;padding:20px;margin-bottom:20px;">
 <h2 style="color:#38bdf8;font-size:16px;margin:0 0 6px 0;">${tc.title}</h2>
 <p style="font-size:12px;color:#64748b;margin:0 0 4px 0;">Input:</p>
-<pre style="background:#0f172a;border:1px solid #334155;border-radius:8px;padding:10px;font-size:13px;color:#94a3b8;margin:0 0 12px 0;overflow-x:auto;white-space:pre-wrap;">${tc.input.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</pre>
-<div style="background:#ffffff;border-radius:8px;padding:16px;color:#1e293b;min-height:40px;">${processContent(tc.input)}</div>
+<pre style="background:#0f172a;border:1px solid #334155;border-radius:8px;padding:10px;font-size:13px;color:#94a3b8;margin:0 0 12px 0;overflow-x:auto;white-space:pre-wrap;">${escapedInput}</pre>
+<div style="background:#ffffff;border-radius:8px;padding:16px;color:#1e293b;min-height:40px;">${rendered}</div>
 </div>`;
 }).join('\n');
 
 const header = `<div style="text-align:center;margin-bottom:30px;">
-<h1 style="color:#38bdf8;margin:0 0 10px 0;">scirender Test Page</h1>
-<p style="color:#94a3b8;font-size:14px;">Testing <a href="https://www.npmjs.com/package/scirender" style="color:#38bdf8;">scirender@1.0.0</a> — processContent() output rendered in browser</p>
+<h1 style="color:#38bdf8;margin:0 0 10px 0;">latex-content-renderer Test Page</h1>
+<p style="color:#94a3b8;font-size:14px;">Testing <a href="https://www.npmjs.com/package/latex-content-renderer" style="color:#38bdf8;">latex-content-renderer@1.0.0</a></p>
 <p style="color:#22c55e;font-size:18px;margin-top:15px;">processContent() — ${passed}/${testCases.length} tests passed ✓</p>
 </div>`;
 
 const fullContent = header + allContent;
 
-// Generate self-contained HTML using getHtml
+// Use skipProcessing: true — content is already processed above per test case
 const html = getHtml(fullContent, {
-  title: 'scirender Test Page',
+  title: 'latex-content-renderer Test Page',
   theme: 'dark',
   fontSize: 15,
+  skipProcessing: true,
   customCss: `
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 900px; margin: 0 auto; padding: 20px; }
     table { border-collapse: collapse; margin: 8px 0; }
-    td, th { border: 1px solid #cbd5e1; padding: 6px 10px; }
+    td, th { border: 1px solid #cbd5e1; padding: 6px 10px; color: #1e293b; }
     img { max-width: 100%; }
     canvas { background: #fff; border-radius: 4px; }
     a { color: #38bdf8; }
+    pre { color: #94a3b8 !important; }
+    h1, h2 { color: #38bdf8 !important; }
+    .scirender-smiles { background: #fff; border-radius: 10px; padding: 8px 12px; display: inline-block; margin: 0.3em 0; box-shadow: 0 1px 4px rgba(0,0,0,0.15); }
+    .scirender-smiles img, .scirender-smiles svg, .scirender-smiles canvas { border-radius: 6px; max-width: 280px; height: auto; display: block; }
   `
 });
 
@@ -93,4 +100,5 @@ const path = require('path');
 const outPath = path.join(__dirname, 'test-output.html');
 fs.writeFileSync(outPath, html, 'utf8');
 console.log(`Test page written to: ${outPath}`);
-console.log('Open test-output.html in your browser to see the visual results!');
+console.log('Serve with: npx serve -p 3333');
+console.log('Then open: http://localhost:3333/test-output.html');

@@ -1,6 +1,6 @@
 {
   "name": "latex-content-renderer",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Universal LaTeX, math, and chemistry (SMILES/mhchem) content renderer for React, React Native, Flutter, and any WebView-based app. Powered by MathJax.",
   "main": "dist/index.js",
   "module": "dist/index.mjs",

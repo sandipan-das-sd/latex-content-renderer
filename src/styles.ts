@@ -124,7 +124,7 @@ body {
   white-space: normal;
 }
 mjx-container {
-  color: #fff !important;
+  color: inherit !important;
   max-width: 100%;
   overflow-x: auto;
   scrollbar-width: thin;
@@ -134,7 +134,7 @@ mjx-container::-webkit-scrollbar { height: 6px; }
 mjx-container::-webkit-scrollbar-track { background: rgba(255,255,255,0.1); border-radius: 3px; }
 mjx-container::-webkit-scrollbar-thumb { background: rgba(255,193,7,0.5); border-radius: 3px; }
 mjx-container::-webkit-scrollbar-thumb:hover { background: rgba(255,193,7,0.8); }
-mjx-container * { color: #fff !important; }
+mjx-container * { color: inherit !important; }
 mjx-container[display="block"] {
   margin: 6px 0;
   max-width: 100%;
