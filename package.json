@@ -1,6 +1,6 @@
 {
   "name": "latex-content-renderer",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "LaTeX math equation renderer for React, React Native, Expo, Flutter, Android & iOS WebView. Render LaTeX, MathJax, KaTeX-style math, chemistry SMILES molecular structures, mhchem chemical formulas, tables, and scientific content. Universal cross-platform math typesetting component with AI/LLM streaming support, accessibility (ARIA/a11y), and SVG export.",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
