@@ -7,6 +7,16 @@
 
   <!-- ONLY ONE SCRIPT TAG NEEDED — MathJax & SmilesDrawer auto-injected -->
   <script src="https://cdn.jsdelivr.net/npm/latex-content-renderer/dist/latex-content-renderer.min.global.js"></script>
+  <script>
+    // Tell MathJax to ignore code display boxes and <code> tags
+    if (window.MathJax) {
+      window.MathJax.options = window.MathJax.options || {};
+      window.MathJax.options.ignoreHtmlClass = 'input-code';
+      var skip = window.MathJax.options.skipHtmlTags || [];
+      if (skip.indexOf('code') === -1) skip.push('code');
+      window.MathJax.options.skipHtmlTags = skip;
+    }
+  </script>
 
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -132,7 +142,7 @@ $$\ce{Ag+ + Cl- -> AgCl v}$$</div>
 
   <!-- ═══════════════════════════════════════════════════ -->
   <h2>4. SMILES Chemical Structures</h2>
-  <p class="desc">2D molecular diagrams from SMILES notation — 7 input formats supported</p>
+  <p class="desc">2D molecular diagrams from SMILES notation — 8 input formats supported</p>
 
   <div class="example">
     <h3>Format: \smiles{...}</h3>
@@ -350,20 +360,20 @@ Bold: \textbf{Hello}, Color: \textcolor{blue}{blue text}</textarea>
 
       // 2. Display math
       LatexRenderer.render('#demo-display',
-        "The Gaussian integral:\n$$\\int_{0}^{\\infty} e^{-x^2} dx = \\frac{\\sqrt{\\pi}}{2}$$\n\nEuler's identity:\n$$e^{i\\pi} + 1 = 0$$"
+        "The Gaussian integral:\\par$$\\int_{0}^{\\infty} e^{-x^2} dx = \\frac{\\sqrt{\\pi}}{2}$$\\par Euler's identity:\\par$$e^{i\\pi} + 1 = 0$$"
       );
 
       // 3. Chemistry
       LatexRenderer.render('#demo-chem',
-        "Water: $\\ce{H2O}$\n\nCombustion of methane:\n$$\\ce{CH4 + 2O2 -> CO2 + 2H2O}$$\n\nEquilibrium:\n$$\\ce{N2 + 3H2 <=> 2NH3}$$\n\nPrecipitation:\n$$\\ce{Ag+ + Cl- -> AgCl v}$$"
+        "Water: $\\ce{H2O}$\\par Combustion of methane:\\par$$\\ce{CH4 + 2O2 -> CO2 + 2H2O}$$\\par Equilibrium:\\par$$\\ce{N2 + 3H2 <=> 2NH3}$$\\par Precipitation:\\par$$\\ce{Ag+ + Cl- -> AgCl v}$$"
       );
 
       // 4. SMILES
       LatexRenderer.render('#demo-smiles-1',
-        "Caffeine: \\smiles{Cn1cnc2c1c(=O)n(c(=O)n2C)C}\n\nAspirin: \\smiles{CC(=O)Oc1ccccc1C(=O)O}\n\nEthanol: \\smiles{CCO}"
+        "Caffeine: \\smiles{Cn1cnc2c1c(=O)n(c(=O)n2C)C}\\par Aspirin: \\smiles{CC(=O)Oc1ccccc1C(=O)O}\\par Ethanol: \\smiles{CCO}"
       );
       LatexRenderer.render('#demo-smiles-2',
-        "<smiles>c1ccccc1</smiles>\n\n[smiles]C(=O)O[/smiles]\n\n<mol>CC(C)CC</mol>"
+        "<smiles>c1ccccc1</smiles>\\par [smiles]C(=O)O[/smiles]\\par <mol>CC(C)CC</mol>"
       );
 
       // 5. Table
@@ -413,7 +423,7 @@ Bold: \textbf{Hello}, Color: \textcolor{blue}{blue text}</textarea>
     // ══════════════════════════════════════════════
     // STREAMING
     // ══════════════════════════════════════════════
-    var streamText = "Let me solve this step by step.\n\nThe quadratic formula is:\n$$x = \\frac{-b \\pm \\sqrt{b^2-4ac}}{2a}$$\n\nFor $x^2 - 5x + 6 = 0$, we have $a=1$, $b=-5$, $c=6$.\n\nSubstituting:\n$$x = \\frac{5 \\pm \\sqrt{25-24}}{2} = \\frac{5 \\pm 1}{2}$$\n\nSolutions: $x_1 = 3$ and $x_2 = 2$.\n\nVerify: $(x-2)(x-3) = x^2 - 5x + 6$ ✓";
+    var streamText = "Let me solve this step by step.\\par The quadratic formula is:\\par$$x = \\frac{-b \\pm \\sqrt{b^2-4ac}}{2a}$$\\par For $x^2 - 5x + 6 = 0$, we have $a=1$, $b=-5$, $c=6$.\\par Substituting:\\par$$x = \\frac{5 \\pm \\sqrt{25-24}}{2} = \\frac{5 \\pm 1}{2}$$\\par Solutions: $x_1 = 3$ and $x_2 = 2$.\\par Verify: $(x-2)(x-3) = x^2 - 5x + 6$ ✓";
 
     var streamState = null, streamIdx = 0, streamTimer = null;
 
@@ -459,7 +469,7 @@ Bold: \textbf{Hello}, Color: \textcolor{blue}{blue text}</textarea>
     }
 
     // Chemistry streaming
-    var chemText = "Water: $\\ce{H2O}$.\n\nCombustion:\n$$\\ce{CH4 + 2O2 -> CO2 + 2H2O}$$\n\nEnergy released: $\\Delta H = -890.4 \\text{ kJ/mol}$.";
+    var chemText = "Water: $\\ce{H2O}$.\\par Combustion:\\par$$\\ce{CH4 + 2O2 -> CO2 + 2H2O}$$\\par Energy released: $\\Delta H = -890.4 \\text{ kJ/mol}$.";
     var chemState = null, chemIdx = 0, chemTimer = null;
 
     function startChemStream() {

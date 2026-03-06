@@ -63,6 +63,7 @@ export type { ExportOptions } from './export';
 
 import { processContent as _processContent } from './processContent';
 import type { ProcessOptions } from './processContent';
+import { renderSmilesInContainer as _renderSmiles } from './smiles';
 
 /**
  * Convenience: process content AND auto-typeset MathJax on an element.
@@ -84,6 +85,9 @@ export function render(
   if (!el) return;
 
   (el as HTMLElement).innerHTML = _processContent(content, options);
+
+  // Auto-render SMILES structures
+  _renderSmiles(el as HTMLElement).catch(() => {});
 
   // Auto-typeset with MathJax when ready
   const mj = (window as any).MathJax;

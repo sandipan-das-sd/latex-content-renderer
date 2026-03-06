@@ -209,6 +209,10 @@ function processSmiles(text: string, idPrefix: string): string {
   processed = processed.replace(/(?:^|\n)\s*SMILES\s*:\s*([^\n]+)/gi, (_m, s: string) =>
     '\n' + buildSmilesElement(s, idPrefix)
   );
+  // Format 8: \smiles{CC1CCCCC1}  (LaTeX-style command)
+  processed = processed.replace(/\\smiles\{([^}]+)\}/g, (_m, s: string) =>
+    buildSmilesElement(s, idPrefix)
+  );
 
   return processed;
 }
