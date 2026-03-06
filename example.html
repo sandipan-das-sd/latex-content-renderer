@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>latex-content-renderer — Complete Example</title>
+
+  <!-- ONLY ONE SCRIPT TAG NEEDED — MathJax & SmilesDrawer auto-injected -->
+  <script src="https://cdn.jsdelivr.net/npm/latex-content-renderer/dist/latex-content-renderer.min.global.js"></script>
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0f172a; color: #e2e8f0;
+      max-width: 900px; margin: 0 auto; padding: 24px;
+    }
+    h1 { text-align: center; color: #38bdf8; margin-bottom: 4px; font-size: 28px; }
+    .subtitle { text-align: center; color: #94a3b8; margin-bottom: 30px; font-size: 14px; }
+    h2 {
+      color: #f59e0b; font-size: 20px; margin: 32px 0 8px;
+      padding-bottom: 6px; border-bottom: 2px solid #334155;
+    }
+    .desc { color: #94a3b8; font-size: 13px; margin-bottom: 12px; }
+    .example {
+      background: #1e293b; border: 1px solid #334155; border-radius: 10px;
+      padding: 16px; margin-bottom: 16px;
+    }
+    .example h3 { color: #38bdf8; font-size: 14px; margin-bottom: 6px; }
+    .input-code {
+      background: #0f172a; border: 1px solid #334155; border-radius: 6px;
+      padding: 10px; font-family: 'Fira Code', monospace; font-size: 12px;
+      color: #94a3b8; margin-bottom: 10px; white-space: pre-wrap; word-break: break-all;
+    }
+    .output {
+      background: #ffffff; border-radius: 8px; padding: 16px;
+      color: #1e293b; min-height: 30px; line-height: 1.7;
+    }
+    .output img { max-width: 100%; height: auto; }
+    .output table { border-collapse: collapse; margin: 8px 0; }
+    .output table td, .output table th {
+      border: 1px solid #cbd5e1; padding: 6px 12px; text-align: center;
+    }
+    .output table th { background: #f1f5f9; font-weight: 600; }
+    .label { font-size: 11px; color: #64748b; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+    button {
+      background: #2563eb; color: #fff; border: none; border-radius: 6px;
+      padding: 8px 16px; cursor: pointer; font-size: 13px; margin: 4px 4px 4px 0;
+    }
+    button:hover { background: #1d4ed8; }
+    button.green { background: #16a34a; }
+    button.green:hover { background: #15803d; }
+    button.orange { background: #d97706; }
+    button.orange:hover { background: #b45309; }
+    .stream-box {
+      background: #ffffff; border-radius: 8px; padding: 16px;
+      color: #1e293b; min-height: 60px; line-height: 1.7;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+    .cursor { display: inline-block; width: 2px; height: 1em; background: #2563eb; animation: blink 0.8s infinite; vertical-align: text-bottom; margin-left: 1px; }
+    .a11y-code {
+      background: #0f172a; border: 1px solid #334155; border-radius: 6px;
+      padding: 10px; font-family: monospace; font-size: 11px;
+      color: #4ade80; white-space: pre-wrap; word-break: break-all;
+      max-height: 200px; overflow-y: auto; display: none;
+    }
+    .svg-preview {
+      background: #fff; border-radius: 8px; padding: 16px;
+      color: #1e293b; min-height: 50px; text-align: center;
+    }
+    .try-input {
+      width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #334155;
+      background: #0f172a; color: #e2e8f0; font-size: 14px; margin: 6px 0;
+    }
+    .badge { background: #16a34a; color:#fff; font-size:11px; padding:2px 8px; border-radius:10px; margin-left:8px; }
+    .note { color: #94a3b8; font-size: 12px; font-style: italic; margin-top: 6px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 640px) { .grid-2 { grid-template-columns: 1fr; } }
+    .scirender-smiles canvas, .scirender-smiles svg { max-width: 250px; }
+  </style>
+</head>
+<body>
+
+  <h1>latex-content-renderer</h1>
+  <p class="subtitle">Complete feature demo — every feature, one page. Only 1 script tag needed.</p>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <h2>1. Inline Math</h2>
+  <p class="desc">Math rendered inline with text using <code>$...$</code> or <code>\(...\)</code></p>
+
+  <div class="example">
+    <p class="label">Input:</p>
+    <div class="input-code">Einstein's famous equation $E = mc^2$ changed physics forever. The quadratic formula is $x = \frac{-b \pm \sqrt{b^2-4ac}}{2a}$.</div>
+    <p class="label">Output:</p>
+    <div class="output" id="demo-inline"></div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <h2>2. Display Math (Block Equations)</h2>
+  <p class="desc">Centered block equations using <code>$$...$$</code> or <code>\[...\]</code></p>
+
+  <div class="example">
+    <p class="label">Input:</p>
+    <div class="input-code">The Gaussian integral:
+$$\int_{0}^{\infty} e^{-x^2} dx = \frac{\sqrt{\pi}}{2}$$
+
+Euler's identity:
+$$e^{i\pi} + 1 = 0$$</div>
+    <p class="label">Output:</p>
+    <div class="output" id="demo-display"></div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <h2>3. Chemistry — mhchem (<code>\ce{}</code>)</h2>
+  <p class="desc">Chemical equations using mhchem notation</p>
+
+  <div class="example">
+    <p class="label">Input:</p>
+    <div class="input-code">Water: $\ce{H2O}$
+
+Combustion of methane:
+$$\ce{CH4 + 2O2 -> CO2 + 2H2O}$$
+
+Equilibrium:
+$$\ce{N2 + 3H2 &lt;=&gt; 2NH3}$$
+
+Precipitation:
+$$\ce{Ag+ + Cl- -> AgCl v}$$</div>
+    <p class="label">Output:</p>
+    <div class="output" id="demo-chem"></div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <h2>4. SMILES Chemical Structures</h2>
+  <p class="desc">2D molecular diagrams from SMILES notation — 7 input formats supported</p>
+
+  <div class="example">
+    <h3>Format: \smiles{...}</h3>
+    <div class="input-code">Caffeine: \smiles{Cn1cnc2c1c(=O)n(c(=O)n2C)C}
+
+Aspirin: \smiles{CC(=O)Oc1ccccc1C(=O)O}
+
+Ethanol: \smiles{CCO}</div>
+    <div class="output" id="demo-smiles-1"></div>
+  </div>
+
+  <div class="example">
+    <h3>Other formats</h3>
+    <div class="input-code">&lt;smiles&gt;c1ccccc1&lt;/smiles&gt;
+
+[smiles]C(=O)O[/smiles]
+
+&lt;mol&gt;CC(C)CC&lt;/mol&gt;</div>
+    <div class="output" id="demo-smiles-2"></div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <h2>5. Tables</h2>
+  <p class="desc">LaTeX tabular → HTML tables with borders</p>
+
+  <div class="example">
+    <p class="label">Input:</p>
+    <div class="input-code">\begin{tabular}{|c|c|c|}
+\hline
+Element & Symbol & Atomic No. \\
+\hline
+Hydrogen & H & 1 \\
+Carbon & C & 6 \\
+Oxygen & O & 8 \\
+\hline
+\end{tabular}</div>
+    <p class="label">Output:</p>
+    <div class="output" id="demo-table"></div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <h2>6. Images</h2>
+  <p class="desc"><code>\includegraphics{url}</code>, <code>![alt](url)</code>, and <code>\begin{figure}</code> with captions</p>
+
+  <div class="example">
+    <div class="grid-2">
+      <div>
+        <p class="label">\includegraphics:</p>
+        <div class="output" id="demo-img-1"></div>
+      </div>
+      <div>
+        <p class="label">Markdown ![alt](url):</p>
+        <div class="output" id="demo-img-2"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="example">
+    <p class="label">Figure with caption:</p>
+    <div class="output" id="demo-img-3"></div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <h2>7. Lists</h2>
+  <p class="desc">Numbered and bullet lists</p>
+
+  <div class="example">
+    <div class="grid-2">
+      <div>
+        <p class="label">Numbered list:</p>
+        <div class="output" id="demo-list-num"></div>
+      </div>
+      <div>
+        <p class="label">Bullet list:</p>
+        <div class="output" id="demo-list-bullet"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <h2>8. Text Formatting</h2>
+  <p class="desc">Bold, italic, underline, monospace, colors, highlights, small caps</p>
+
+  <div class="example">
+    <div class="output" id="demo-format"></div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <h2>9. Spacing & Line Breaks</h2>
+  <p class="desc"><code>\quad</code>, <code>\hspace</code>, <code>\vspace</code>, <code>\newline</code>, <code>\\</code></p>
+
+  <div class="example">
+    <div class="output" id="demo-spacing"></div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <h2>10. AI/LLM Streaming <span class="badge">NEW</span></h2>
+  <p class="desc">Buffers incomplete math during streaming — equations appear only when complete. Works with ChatGPT, Claude, Gemini, or any LLM API.</p>
+
+  <div class="example">
+    <h3>Math Streaming Demo</h3>
+    <p class="desc">Simulates an AI sending a response character by character. Watch how incomplete equations are buffered.</p>
+    <div>
+      <button onclick="startStream(30)">▶ Start Streaming</button>
+      <button class="green" onclick="startStream(10)">⚡ Fast</button>
+      <button class="orange" onclick="resetStream()">↻ Reset</button>
+      <span id="stream-status" style="margin-left:8px;font-size:13px;"></span>
+    </div>
+    <div class="stream-box" id="stream-output" style="margin-top:10px;">
+      <span style="color:#94a3b8;font-style:italic">Click Start to see streaming...</span>
+    </div>
+  </div>
+
+  <div class="example">
+    <h3>Chemistry Streaming Demo</h3>
+    <div>
+      <button onclick="startChemStream()">▶ Start Chemistry Stream</button>
+      <button class="orange" onclick="resetChemStream()">↻ Reset</button>
+    </div>
+    <div class="stream-box" id="chem-stream-output" style="margin-top:10px;">
+      <span style="color:#94a3b8;font-style:italic">Click to begin...</span>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <h2>11. Accessibility (ARIA) <span class="badge">NEW</span></h2>
+  <p class="desc">Adds <code>role="math"</code> and <code>aria-label</code> to math so screen readers can read equations aloud.</p>
+
+  <div class="example" id="a11y-example-1">
+    <h3>$x = \frac{-b \pm \sqrt{b^2-4ac}}{2a}$</h3>
+    <div class="output" id="a11y-out-1"></div>
+    <button style="margin-top:8px" onclick="toggleA11y(1)">🔍 Show Accessible HTML</button>
+    <div class="a11y-code" id="a11y-code-1"></div>
+  </div>
+
+  <div class="example" id="a11y-example-2">
+    <h3>$\alpha + \beta = \gamma$</h3>
+    <div class="output" id="a11y-out-2"></div>
+    <button style="margin-top:8px" onclick="toggleA11y(2)">🔍 Show Accessible HTML</button>
+    <div class="a11y-code" id="a11y-code-2"></div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <h2>12. SVG Export <span class="badge">NEW</span></h2>
+  <p class="desc">Convert any LaTeX equation to an SVG image. Requires <code>tex-svg.js</code> (loaded below for this demo).</p>
+
+  <div class="example">
+    <p class="label">Enter LaTeX (no $ needed):</p>
+    <input class="try-input" id="export-input" value="E = mc^2" />
+    <div>
+      <button onclick="doExport()">Export to SVG</button>
+      <button class="green" onclick="doDataUrl()">Get Data URL</button>
+      <button class="orange" onclick="doDownload()">⬇ Download SVG</button>
+    </div>
+    <p class="label" style="margin-top:10px">Preview:</p>
+    <div class="svg-preview" id="export-preview">
+      <span style="color:#94a3b8;font-style:italic">Click "Export to SVG"...</span>
+    </div>
+    <p class="label" style="margin-top:8px">SVG Code:</p>
+    <div class="input-code" id="export-code" style="max-height:120px;overflow-y:auto;">—</div>
+  </div>
+
+  <div class="example">
+    <h3>Quick Export</h3>
+    <div class="grid-2">
+      <button style="text-align:left;background:#334155;" onclick="quickExport('\\frac{-b \\pm \\sqrt{b^2-4ac}}{2a}')">Quadratic Formula</button>
+      <button style="text-align:left;background:#334155;" onclick="quickExport('\\int_0^\\infty e^{-x^2} dx = \\frac{\\sqrt{\\pi}}{2}')">Gaussian Integral</button>
+      <button style="text-align:left;background:#334155;" onclick="quickExport('\\sum_{n=0}^{\\infty} \\frac{x^n}{n!} = e^x')">Taylor Series (e^x)</button>
+      <button style="text-align:left;background:#334155;" onclick="quickExport('\\nabla \\times \\vec{E} = -\\frac{\\partial \\vec{B}}{\\partial t}')">Maxwell's Equation</button>
+    </div>
+    <div class="svg-preview" id="quick-preview" style="margin-top:10px;min-height:50px;">
+      <span style="color:#94a3b8;font-style:italic">Click an equation...</span>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <h2>13. Try It Yourself</h2>
+  <p class="desc">Type any LaTeX and see it rendered live.</p>
+
+  <div class="example">
+    <textarea class="try-input" id="try-input" rows="4" style="resize:vertical;" placeholder="Type LaTeX here...">The area of a circle is $A = \pi r^2$.
+
+A matrix: $$\begin{pmatrix} a & b \\ c & d \end{pmatrix}$$
+
+Bold: \textbf{Hello}, Color: \textcolor{blue}{blue text}</textarea>
+    <button onclick="renderTry()" style="margin-top:8px;">Render</button>
+    <div class="output" id="try-output" style="margin-top:10px;min-height:50px;">
+      <span style="color:#94a3b8;font-style:italic">Click "Render"...</span>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- SCRIPTS -->
+  <!-- ═══════════════════════════════════════════════════ -->
+
+  <!-- Load tex-svg.js for SVG export demo (separate from auto-loaded tex-mml-chtml) -->
+  <script>
+    // Wait for auto-injected MathJax to configure, then also request SVG output
+    var _svgReady = false;
+    function waitForMathJax(fn) {
+      if (window.MathJax && MathJax.typesetPromise) { fn(); return; }
+      setTimeout(function() { waitForMathJax(fn); }, 150);
+    }
+  </script>
+
+  <script>
+    // ══════════════════════════════════════════════
+    // RENDER ALL STATIC DEMOS
+    // ══════════════════════════════════════════════
+    waitForMathJax(function() {
+      // 1. Inline math
+      LatexRenderer.render('#demo-inline',
+        "Einstein's famous equation $E = mc^2$ changed physics forever. The quadratic formula is $x = \\frac{-b \\pm \\sqrt{b^2-4ac}}{2a}$."
+      );
+
+      // 2. Display math
+      LatexRenderer.render('#demo-display',
+        "The Gaussian integral:\n$$\\int_{0}^{\\infty} e^{-x^2} dx = \\frac{\\sqrt{\\pi}}{2}$$\n\nEuler's identity:\n$$e^{i\\pi} + 1 = 0$$"
+      );
+
+      // 3. Chemistry
+      LatexRenderer.render('#demo-chem',
+        "Water: $\\ce{H2O}$\n\nCombustion of methane:\n$$\\ce{CH4 + 2O2 -> CO2 + 2H2O}$$\n\nEquilibrium:\n$$\\ce{N2 + 3H2 <=> 2NH3}$$\n\nPrecipitation:\n$$\\ce{Ag+ + Cl- -> AgCl v}$$"
+      );
+
+      // 4. SMILES
+      LatexRenderer.render('#demo-smiles-1',
+        "Caffeine: \\smiles{Cn1cnc2c1c(=O)n(c(=O)n2C)C}\n\nAspirin: \\smiles{CC(=O)Oc1ccccc1C(=O)O}\n\nEthanol: \\smiles{CCO}"
+      );
+      LatexRenderer.render('#demo-smiles-2',
+        "<smiles>c1ccccc1</smiles>\n\n[smiles]C(=O)O[/smiles]\n\n<mol>CC(C)CC</mol>"
+      );
+
+      // 5. Table
+      LatexRenderer.render('#demo-table',
+        "\\begin{tabular}{|c|c|c|}\\hline Element & Symbol & Atomic No. \\\\ \\hline Hydrogen & H & 1 \\\\ Carbon & C & 6 \\\\ Oxygen & O & 8 \\\\ \\hline\\end{tabular}"
+      );
+
+      // 6. Images
+      LatexRenderer.render('#demo-img-1',
+        "\\includegraphics[width=200px]{https://picsum.photos/seed/latex1/200/130}"
+      );
+      LatexRenderer.render('#demo-img-2',
+        "![A scenic view](https://picsum.photos/seed/latex2/200/130)"
+      );
+      LatexRenderer.render('#demo-img-3',
+        "\\begin{figure}\\includegraphics[width=250px]{https://picsum.photos/seed/latex3/250/150}\\caption{A sample figure rendered by latex-content-renderer}\\end{figure}"
+      );
+
+      // 7. Lists
+      LatexRenderer.render('#demo-list-num',
+        "\\begin{enumerate}\\item First item: $a^2 + b^2 = c^2$\\item Second item\\item Third item\\end{enumerate}"
+      );
+      LatexRenderer.render('#demo-list-bullet',
+        "\\begin{itemize}\\item Bullet one\\item Bullet two with $\\pi \\approx 3.14$\\item Bullet three\\end{itemize}"
+      );
+
+      // 8. Text formatting
+      LatexRenderer.render('#demo-format',
+        "\\textbf{Bold text}, \\textit{italic text}, \\underline{underlined}, \\texttt{monospace code}, \\textsc{Small Caps}, \\textcolor{red}{red text}, \\textcolor{blue}{blue text}, \\colorbox{yellow}{highlighted}."
+      );
+
+      // 9. Spacing
+      LatexRenderer.render('#demo-spacing',
+        "Word\\quad{}gap\\quad{}here.\\newline After newline.\\\\After double backslash.\\par New paragraph with \\hspace{50px} 50px gap."
+      );
+
+      // 11. Accessibility
+      var a11yInputs = [
+        '$x = \\frac{-b \\pm \\sqrt{b^2-4ac}}{2a}$',
+        '$\\alpha + \\beta = \\gamma$'
+      ];
+      window._a11yInputs = a11yInputs;
+      LatexRenderer.render('#a11y-out-1', a11yInputs[0]);
+      LatexRenderer.render('#a11y-out-2', a11yInputs[1]);
+    });
+
+    // ══════════════════════════════════════════════
+    // STREAMING
+    // ══════════════════════════════════════════════
+    var streamText = "Let me solve this step by step.\n\nThe quadratic formula is:\n$$x = \\frac{-b \\pm \\sqrt{b^2-4ac}}{2a}$$\n\nFor $x^2 - 5x + 6 = 0$, we have $a=1$, $b=-5$, $c=6$.\n\nSubstituting:\n$$x = \\frac{5 \\pm \\sqrt{25-24}}{2} = \\frac{5 \\pm 1}{2}$$\n\nSolutions: $x_1 = 3$ and $x_2 = 2$.\n\nVerify: $(x-2)(x-3) = x^2 - 5x + 6$ ✓";
+
+    var streamState = null, streamIdx = 0, streamTimer = null;
+
+    function startStream(speed) {
+      if (streamTimer) return;
+      if (!streamState) {
+        streamState = LatexRenderer.createStreamingState();
+        streamIdx = 0;
+      }
+      var el = document.getElementById('stream-output');
+      var status = document.getElementById('stream-status');
+      status.textContent = '⏳ Streaming...';
+
+      streamTimer = setInterval(function() {
+        if (streamIdx >= streamText.length) {
+          clearInterval(streamTimer); streamTimer = null;
+          var final = LatexRenderer.flushStream(streamState);
+          el.innerHTML = LatexRenderer.processContent(final);
+          status.textContent = '✅ Complete!';
+          if (MathJax.typesetPromise) {
+            MathJax.typesetClear && MathJax.typesetClear([el]);
+            MathJax.typesetPromise([el]).catch(function(){});
+          }
+          return;
+        }
+        var chunkSize = Math.floor(Math.random() * 3) + 1;
+        var chunk = streamText.slice(streamIdx, streamIdx + chunkSize);
+        streamIdx += chunkSize;
+        var safe = LatexRenderer.feedChunk(streamState, chunk);
+        el.innerHTML = LatexRenderer.processContent(safe) + '<span class="cursor"></span>';
+        if (MathJax.typesetPromise) {
+          MathJax.typesetClear && MathJax.typesetClear([el]);
+          MathJax.typesetPromise([el]).catch(function(){});
+        }
+      }, speed);
+    }
+
+    function resetStream() {
+      if (streamTimer) { clearInterval(streamTimer); streamTimer = null; }
+      streamState = null; streamIdx = 0;
+      document.getElementById('stream-output').innerHTML = '<span style="color:#94a3b8;font-style:italic">Click Start to see streaming...</span>';
+      document.getElementById('stream-status').textContent = '';
+    }
+
+    // Chemistry streaming
+    var chemText = "Water: $\\ce{H2O}$.\n\nCombustion:\n$$\\ce{CH4 + 2O2 -> CO2 + 2H2O}$$\n\nEnergy released: $\\Delta H = -890.4 \\text{ kJ/mol}$.";
+    var chemState = null, chemIdx = 0, chemTimer = null;
+
+    function startChemStream() {
+      if (chemTimer) return;
+      chemState = LatexRenderer.createStreamingState();
+      chemIdx = 0;
+      var el = document.getElementById('chem-stream-output');
+      chemTimer = setInterval(function() {
+        if (chemIdx >= chemText.length) {
+          clearInterval(chemTimer); chemTimer = null;
+          var final = LatexRenderer.flushStream(chemState);
+          el.innerHTML = LatexRenderer.processContent(final);
+          if (MathJax.typesetPromise) {
+            MathJax.typesetClear && MathJax.typesetClear([el]);
+            MathJax.typesetPromise([el]).catch(function(){});
+          }
+          return;
+        }
+        var chunk = chemText.slice(chemIdx, chemIdx + 2);
+        chemIdx += 2;
+        var safe = LatexRenderer.feedChunk(chemState, chunk);
+        el.innerHTML = LatexRenderer.processContent(safe) + '<span class="cursor"></span>';
+        if (MathJax.typesetPromise) {
+          MathJax.typesetClear && MathJax.typesetClear([el]);
+          MathJax.typesetPromise([el]).catch(function(){});
+        }
+      }, 40);
+    }
+
+    function resetChemStream() {
+      if (chemTimer) { clearInterval(chemTimer); chemTimer = null; }
+      chemState = null; chemIdx = 0;
+      document.getElementById('chem-stream-output').innerHTML = '<span style="color:#94a3b8;font-style:italic">Click to begin...</span>';
+    }
+
+    // ══════════════════════════════════════════════
+    // ACCESSIBILITY
+    // ══════════════════════════════════════════════
+    function toggleA11y(idx) {
+      var el = document.getElementById('a11y-code-' + idx);
+      if (el.style.display === 'none' || !el.style.display) {
+        var input = window._a11yInputs[idx - 1];
+        var processed = LatexRenderer.processContent(input);
+        var accessible = LatexRenderer.addAccessibility(processed);
+        el.textContent = accessible.replace(/></g, '>\n<');
+        el.style.display = 'block';
+      } else {
+        el.style.display = 'none';
+      }
+    }
+
+    // ══════════════════════════════════════════════
+    // SVG EXPORT
+    // ══════════════════════════════════════════════
+    function doExport() {
+      var tex = document.getElementById('export-input').value;
+      if (!tex) return;
+      try {
+        // Use MathJax.tex2svg if available
+        if (MathJax.tex2svg) {
+          var node = MathJax.tex2svg(tex, { display: true });
+          var svg = node.querySelector('svg');
+          svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+          svg.removeAttribute('aria-hidden');
+          svg.setAttribute('role', 'img');
+          var svgStr = svg.outerHTML;
+          document.getElementById('export-preview').innerHTML = svgStr;
+          document.getElementById('export-code').textContent = svgStr;
+        } else {
+          // Fallback: render with CHTML
+          var n = MathJax.tex2chtml(tex, { display: true });
+          document.getElementById('export-preview').innerHTML = '';
+          document.getElementById('export-preview').appendChild(n);
+          MathJax.startup.document.clear();
+          MathJax.startup.document.updateDocument();
+          document.getElementById('export-code').textContent = 'Using CHTML output. For SVG, load tex-svg.js.';
+        }
+      } catch (err) {
+        document.getElementById('export-preview').innerHTML = '<span style="color:red">' + err.message + '</span>';
+      }
+    }
+
+    function doDataUrl() {
+      var tex = document.getElementById('export-input').value;
+      if (!tex) return;
+      try {
+        if (MathJax.tex2svg) {
+          var node = MathJax.tex2svg(tex, { display: true });
+          var svg = node.querySelector('svg');
+          svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+          svg.removeAttribute('aria-hidden');
+          var svgStr = svg.outerHTML;
+          var b64 = btoa(unescape(encodeURIComponent(svgStr)));
+          var dataUrl = 'data:image/svg+xml;base64,' + b64;
+          document.getElementById('export-preview').innerHTML = '<img src="' + dataUrl + '" alt="equation" style="max-width:100%" />';
+          document.getElementById('export-code').textContent = dataUrl;
+        } else {
+          document.getElementById('export-code').textContent = 'Data URL requires tex-svg.js for SVG output.';
+          doExport();
+        }
+      } catch (err) {
+        document.getElementById('export-code').textContent = err.message;
+      }
+    }
+
+    function doDownload() {
+      var tex = document.getElementById('export-input').value;
+      if (!tex) return;
+      try {
+        if (!MathJax.tex2svg) { alert('SVG download requires tex-svg.js'); return; }
+        var node = MathJax.tex2svg(tex, { display: true });
+        var svg = node.querySelector('svg');
+        svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+        svg.removeAttribute('aria-hidden');
+        var blob = new Blob([svg.outerHTML], { type: 'image/svg+xml' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url; a.download = 'equation.svg'; a.click();
+        URL.revokeObjectURL(url);
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+
+    function quickExport(tex) {
+      document.getElementById('export-input').value = tex;
+      var preview = document.getElementById('quick-preview');
+      try {
+        if (MathJax.tex2svg) {
+          var node = MathJax.tex2svg(tex, { display: true });
+          var svg = node.querySelector('svg').cloneNode(true);
+          svg.removeAttribute('aria-hidden');
+          preview.innerHTML = '';
+          preview.appendChild(svg);
+        } else if (MathJax.tex2chtml) {
+          var n = MathJax.tex2chtml(tex, { display: true });
+          preview.innerHTML = '';
+          preview.appendChild(n);
+          MathJax.startup.document.clear();
+          MathJax.startup.document.updateDocument();
+        }
+      } catch (err) {
+        preview.innerHTML = '<span style="color:red">' + err.message + '</span>';
+      }
+    }
+
+    // ══════════════════════════════════════════════
+    // TRY IT YOURSELF
+    // ══════════════════════════════════════════════
+    function renderTry() {
+      LatexRenderer.render('#try-output', document.getElementById('try-input').value);
+    }
+  </script>
+
+  <div style="text-align:center;margin:40px 0 20px;color:#64748b;font-size:13px;">
+    <p>Made with ❤️ by <a href="https://github.com/sandipan-das-sd" style="color:#38bdf8;">Sandipan Das</a></p>
+    <p style="margin-top:4px;">npm install latex-content-renderer</p>
+  </div>
+
+</body>
+</html>
