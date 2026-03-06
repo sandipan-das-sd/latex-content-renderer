@@ -500,3 +500,5 @@ Questions? Email: [dsandipan3002@gmail.com](mailto:dsandipan3002@gmail.com)
 ## License
 
 MIT — free for personal and commercial use.
+
+![equation](https://latex.codecogs.com/png.image?\dpi{120}x=\frac{-b\pm\sqrt{b^2-4ac}}{2a})
